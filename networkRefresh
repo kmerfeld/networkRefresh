@@ -1,5 +1,8 @@
 #!/usr/bin/env perl
-$failed = "Destination Host Unreachable";
+use strict;
+use warnings;
+my $failed = "Destination Host Unreachable";
+
 
 open FILE, ">>", "networkOutput" or die $!;
 print FILE "networkRefresh starting up";
@@ -7,9 +10,9 @@ close FILE;
 sub resetConnection{
 	my $ping = `ping 8.8.8.8 -c 1`;
 	if (index($ping, $failed) != -1){
-		$date = scalar localtime(time);
-		
-open FILE, ">>", "networkOutput" or die $!;
+		my $date = scalar localtime(time);
+
+		open FILE, ">>", "networkOutput" or die $!;
 		print FILE "$date\n";
 		close FILE;
 		system("nmcli", "dev", "disconnect", "wlp1s0");
@@ -17,7 +20,7 @@ open FILE, ">>", "networkOutput" or die $!;
 		sleep 15;
 	}
 } 
-while("a" == "b"){
+while("1"  != "2"){
 	resetConnection();
 } 
 close FILE;
