@@ -1,26 +1,39 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+
+my $interface = $ARGV[0];
+my $date = scalar localtime(time);
 my $failed = "Destination Host Unreachable";
 
+$SIG{INT} = \&interrupt;
 
-open FILE, ">>", "networkOutput" or die $!;
-print FILE "networkRefresh starting up";
-close FILE;
-sub resetConnection{
+#Add a line to the log to show its running
+open FILE, ">>", "networkOutput" or die "Can't Create Log file: $!";
+print FILE "networkRefresh starting on $date\t\n";
+
+#Defaults the interface as wlp1s0 because thats what mine is
+if(!$interface){
+	$interface = "wlp1s0"
+}
+
+while("1"  != "2"){
 	my $ping = `ping 8.8.8.8 -c 1`;
 	if (index($ping, $failed) != -1){
 		my $date = scalar localtime(time);
-
-		open FILE, ">>", "networkOutput" or die $!;
 		print FILE "$date\n";
-		close FILE;
-		system("nmcli", "dev", "disconnect", "wlp1s0");
-		system("nmcli dev connect wlp1s0");
-		sleep 15;
+		#reset the network
+		system("nmcli dev disconnect $interface");
+		system("nmcli dev connect $interface");
+		#give the system a little rest.
+		#not sure if this line will stay
+		sleep 1;
 	}
 } 
-while("1"  != "2"){
-	resetConnection();
-} 
-close FILE;
+
+sub interrupt {	
+	my $date = scalar localtime(time);
+	print FILE "networkRefresh stopping on $date\t\n";
+	print STDERR "Closing program!\n";
+	exit; 
+}
