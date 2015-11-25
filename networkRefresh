@@ -6,31 +6,39 @@ my $interface = $ARGV[0];
 my $date = scalar localtime(time);
 my $failed = "Destination Host Unreachable";
 
+#log closing time on Ctl+C
 $SIG{INT} = \&interrupt;
 
-#Add a line to the log to show its running
-open FILE, ">>", "networkOutput" or die "Can't Create Log file: $!";
-print FILE "networkRefresh starting on $date\t\n";
 
-#Defaults the interface as wlp1s0 because thats what mine is
-if(!$interface){
-	$interface = "wlp1s0"
-}
+#only runs if connected to eduroam
+my $t = `nmcli connection  show --active`;
+if (index($t, "eduroam") != -1) {
 
-while("1"  != "2"){
-	my $ping = `ping 8.8.8.8 -c 1`;
-	if (index($ping, $failed) != -1){
-		my $date = scalar localtime(time);
-		print FILE "$date\n";
-		#reset the network
-		system("nmcli dev disconnect $interface");
-		system("nmcli dev connect $interface");
-		#give the system a little rest.
-		#not sure if this line will stay
-		sleep 1;
+	#Add a line to the log to show its running
+	open FILE, ">>", "networkRefresh/networkOutput" or die "Can't Create Log file: $!";
+	print FILE "networkRefresh starting on $date\t\n";
+
+	#Defaults the interface as wlp1s0 because thats what mine is
+	if(!$interface){
+		$interface = "wlp1s0"
 	}
-} 
 
+	while("1"  != "2"){
+		my $ping = `ping 8.8.8.8 -c 1`;
+		if (index($ping, $failed) != -1){
+			my $date = scalar localtime(time);
+			print FILE "$date\n";
+			#reset the network
+			system("nmcli dev disconnect $interface");
+			system("nmcli dev connect $interface");
+			#give the system a little rest.
+			#not sure if this line will stay
+			sleep 5;
+		}
+	} 
+}
+else
+{exit};
 sub interrupt {	
 	my $date = scalar localtime(time);
 	print FILE "networkRefresh stopping on $date\t\n";
