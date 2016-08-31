@@ -4,24 +4,28 @@ use warnings;
 
 my $interface = $ARGV[0];
 my $date = scalar localtime(time);
+#this is the message we check for
 my $failed = "Destination Host Unreachable";
 
 #log closing time on Ctl+C
 $SIG{INT} = \&interrupt;
 
 
-#only runs if connected to eduroam
-my $t = `nmcli connection  show --active`;
-if (index($t, "eduroam") != -1) {
+# Open the log file
+open FILE, ">>", ".networkOutput" or die $!;
 
-	#Add a line to the log to show its running
-	open FILE, ">>", "networkRefresh/networkOutput" or die "Can't Create Log file: $!";
-	print FILE "networkRefresh starting on $date\t\n";
+
+#only runs if connected to eduroam or NDSU Secure
+my $active = `nmcli connection  show --active`;
+if (( $active =~ "eduroam" ) or ($active =~ "NDSU Secure"))
+{
+	# write startup time to log file.
+	# this only triggers when starting on a NDSU network,
+	# NOTE: this will track you if used. 
+	print FILE "networkRefresh starting up -- $date\n";
 
 	#Defaults the interface as wlp1s0 because thats what mine is
-	if(!$interface){
-		$interface = "wlp1s0"
-	}
+	if(!$interface){$interface = "wlp1s0"}
 
 	while("1"  != "2"){
 		my $ping = `ping 8.8.8.8 -c 1`;
@@ -32,16 +36,15 @@ if (index($t, "eduroam") != -1) {
 			system("nmcli dev disconnect $interface");
 			system("nmcli dev connect $interface");
 			#give the system a little rest.
-			#not sure if this line will stay
 			sleep 5;
 		}
 	} 
 }
-else
-{exit};
+else{exit};
+
+#this isnt really used by me anymore. but i might as well keep it
 sub interrupt {	
 	my $date = scalar localtime(time);
-	print FILE "networkRefresh stopping on $date\t\n";
 	print STDERR "Closing program!\n";
 	exit; 
 }
