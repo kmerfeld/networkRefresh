@@ -17,8 +17,22 @@ open FILE, ">>", ".networkOutput" or die $!;
 
 #only runs if connected to eduroam or NDSU Secure
 my $active = `nmcli connection  show --active`;
-if (( $active =~ "eduroam" ) or ($active =~ "NDSU Secure"))
+if ( 1 == 1)#(( $active =~ "eduroam" ) or ($active =~ "NDSU Secure"))
 {
+
+	
+	#tries to get the time this program stopped running
+	if (-e ".networkTimeStamp")
+	{
+		my $power_off_time = &read_timeStamp;
+		print FILE "networkRefresh seemed to stop -- $power_off_time\n";
+	}
+
+	#We are writing a time right now so if we shut down before the next w
+	#rite procs we can still know about when it shut down
+	# NOTE: this will track you if used.
+	&write_timeStamp;
+
 	# write startup time to log file.
 	# this only triggers when starting on a NDSU network,
 	# NOTE: this will track you if used. 
@@ -27,6 +41,7 @@ if (( $active =~ "eduroam" ) or ($active =~ "NDSU Secure"))
 	#Defaults the interface as wlp1s0 because thats what mine is
 	if(!$interface){$interface = "wlp1s0"}
 
+	my $count = 0;
 	while("1"  != "2"){
 		my $ping = `ping 8.8.8.8 -c 1`;
 		if (index($ping, $failed) != -1){
@@ -37,6 +52,12 @@ if (( $active =~ "eduroam" ) or ($active =~ "NDSU Secure"))
 			system("nmcli dev connect $interface");
 			#give the system a little rest.
 			sleep 5;
+			$count += 1;
+			#this will update the timestamp every 5 minutes or so
+			if ($count eq 60){
+				&write_timeStamp;
+				$count = 0;
+			}
 		}
 	} 
 }
@@ -47,4 +68,17 @@ sub interrupt {
 	my $date = scalar localtime(time);
 	print STDERR "Closing program!\n";
 	exit; 
+}
+
+#This scheme will give a better idea of when the computer was shut down
+sub write_timeStamp {
+	open TIMESTAMP, ">", ".networkTimeStamp";
+	$date = scalar localtime(time);
+	print TIMESTAMP "$date";
+	close TIMESTAMP;
+}
+sub read_timeStamp {
+	open TIMESTAMP, ".networkTimeStamp" or die $!;
+	my $input = <TIMESTAMP>;
+	return $input;
 }
