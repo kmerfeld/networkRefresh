@@ -1,8 +1,18 @@
 # networkRefresh
 
-dependencies:
+
+##Note:
+j
+I found that this is caused by my laptop having An ATHEROS chip. Using a USB dongle solves my connection issues.
+
+
+##dependencies:
+
 	Perl
+
 	networkManager
+
+##info
 
 This program resets my network connection when a ping returns "Destination Host Unreachable"
 I have been getting an odd error on my schools wifi and this is a temparary fix.

@@ -17,7 +17,7 @@ open FILE, ">>", ".networkOutput" or die $!;
 
 #only runs if connected to eduroam or NDSU Secure
 my $active = `nmcli connection  show --active`;
-if ( 1 == 1)#(( $active =~ "eduroam" ) or ($active =~ "NDSU Secure"))
+if(1 eq 1) #(( $active =~ "eduroam" ) or ( $active =~ "NDSU Secure" ))
 {
 
 	
@@ -36,7 +36,7 @@ if ( 1 == 1)#(( $active =~ "eduroam" ) or ($active =~ "NDSU Secure"))
 	# write startup time to log file.
 	# this only triggers when starting on a NDSU network,
 	# NOTE: this will track you if used. 
-	print FILE "networkRefresh starting up -- $date\n";
+	print FILE "networkRefresh starting up    -- $date\n";
 
 	#Defaults the interface as wlp1s0 because thats what mine is
 	if(!$interface){$interface = "wlp1s0"}
